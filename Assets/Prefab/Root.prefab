@@ -460,7 +460,7 @@ MonoBehaviour:
   m_RefResolutionY: 180
   m_UpscaleRT: 0
   m_PixelSnapping: 0
-  m_CropFrameX: 0
+  m_CropFrameX: 1
   m_CropFrameY: 1
   m_StretchFill: 0
 --- !u!114 &8617627546236054772
