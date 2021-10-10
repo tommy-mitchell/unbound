@@ -68,5 +68,11 @@ namespace CommonLibrary
         {
             yield return new WaitForSecondsRealtime(time);
         }
+
+        public static void DestroyAllChildren(Transform transform)
+        {
+            for(int i = transform.childCount - 1; i >= 0; i--)
+                GameObject.DestroyImmediate(transform.GetChild(i).gameObject);
+        }
     }
 }
