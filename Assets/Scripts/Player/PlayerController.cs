@@ -63,8 +63,8 @@ public class PlayerController : MonoBehaviour
 
             // Raycast() returns a list of 'hit' outputs, so if list > 0 then there's a hit
             return Physics2D.Raycast(groundCheck.position, Vector2.down, filter, new List<RaycastHit2D>(), OFFSET_PER_PIXEL) > 0  &&
-                 !((Physics2D.Raycast(groundCheck.position + new Vector3(0, OFFSET_PER_PIXEL * 5, 0), Vector2.down, filter, new List<RaycastHit2D>(), OFFSET_PER_PIXEL) > 0) &&
-                   (Physics2D.Raycast(groundCheck.position - new Vector3(0, OFFSET_PER_PIXEL * 5, 0), Vector2.down, filter, new List<RaycastHit2D>(), OFFSET_PER_PIXEL) > 0));
+                 !((Physics2D.Raycast(groundCheck.position + new Vector3(0, OFFSET_PER_PIXEL, 0), Vector2.down, filter, new List<RaycastHit2D>(), OFFSET_PER_PIXEL) > 0) &&
+                   (Physics2D.Raycast(groundCheck.position - new Vector3(0, OFFSET_PER_PIXEL, 0), Vector2.down, filter, new List<RaycastHit2D>(), OFFSET_PER_PIXEL) > 0));
         };
 
         return checkTransform(groundChecks[0]) || checkTransform(groundChecks[1]) || checkTransform(groundChecks[2]);

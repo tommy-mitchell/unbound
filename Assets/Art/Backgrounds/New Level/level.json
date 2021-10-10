@@ -1,0 +1,35 @@
+{ "frames": {
+   "level 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 2600, "h": 380 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 2600, "h": 380 },
+    "sourceSize": { "w": 2600, "h": 380 },
+    "duration": 100
+   },
+   "level 1.aseprite": {
+    "frame": { "x": 2600, "y": 0, "w": 2600, "h": 380 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 2600, "h": 380 },
+    "sourceSize": { "w": 2600, "h": 380 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.3-beta6-x64",
+  "format": "RGBA8888",
+  "size": { "w": 5200, "h": 380 },
+  "scale": "1",
+  "layers": [
+   { "name": "Background", "opacity": 255, "blendMode": "normal", "data": "38" },
+   { "name": "Background Lava", "opacity": 255, "blendMode": "normal", "data": "38" },
+   { "name": "Midground", "opacity": 255, "blendMode": "normal", "data": "10" },
+   { "name": "Ground", "opacity": 255, "blendMode": "normal", "data": "0" },
+   { "name": "Collision", "opacity": 255, "blendMode": "normal", "data": "0" },
+   { "name": "Foreground Lava", "opacity": 255, "blendMode": "normal", "data": "-1" },
+   { "name": "Foreground Top", "opacity": 255, "blendMode": "normal", "data": "-2" }
+  ]
+ }
+}

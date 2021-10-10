@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Sirenix.OdinInspector;
+//using Sirenix.OdinInspector;
+using LevelBuilder;
 
 public class ParallaxBuilder : MonoBehaviour
 {
-    public List<Sprite> sprites;
-
-    [Button]
-    public void BuildPrefabs(float distance = 38f)
+    public void BuildPrefabs(List<Layer> layers)
     {
         CommonLibrary.CommonMethods.DestroyAllChildren(this.transform);
 
@@ -15,13 +13,13 @@ public class ParallaxBuilder : MonoBehaviour
         Transform _player = GameObject.FindGameObjectWithTag("Player").transform;
         Camera    _camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
-        int foregroundCount = 0;
-
-        foreach(Sprite sprite in sprites)
+        foreach(Layer layer in layers)
         {
             // create new parallax layer and cache it's SpriteRenderer
             Parallax       newLayer = Instantiate(_prefab);
             SpriteRenderer renderer = newLayer.GetComponent<SpriteRenderer>();
+
+            Sprite sprite = layer.ToSprites()[0]; // TODO: temp
 
             // set attributes
             newLayer.name         =  sprite.name;
@@ -31,19 +29,12 @@ public class ParallaxBuilder : MonoBehaviour
             newLayer.infiniteLoop =  false;
             
             // set distance
-            if(sprite.name.Contains("Foreground")) // in front of camera
-            {
-                newLayer.transform.position = new Vector3(0, 0, -1 - foregroundCount++);
-                renderer.sortingLayerName = "Foreground";
-            }
-            else // away from camera
-            {
-                newLayer.transform.position = new Vector3(0, 0, distance);
-                distance /= 2.0f; // get closer on each layer
-                //distance /= 2.718f;
-                //distance = Mathf.Sqrt(distance);
-            }
+            newLayer.transform.position = new Vector3(0, 0, layer.Distance);
 
+            // in front of ground
+            if(sprite.name.Contains("Foreground"))
+                renderer.sortingLayerName = "Foreground";
+            
             // set parent
             newLayer.transform.SetParent(this.transform);
         }

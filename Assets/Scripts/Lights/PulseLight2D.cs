@@ -8,13 +8,13 @@ using Sirenix.OdinInspector;
 public class PulseLight2D : MonoBehaviour
 {
     private struct LightIntensityPair {
-        public Light2D        component { get; }
-        public float   falloffIntensity { get; }
+        public Light2D        Component { get; }
+        public float   FalloffIntensity { get; }
 
         public LightIntensityPair(Light2D _light)
         {
-            component        = _light;
-            falloffIntensity = _light.shapeLightFalloffSize;
+            Component        = _light;
+            FalloffIntensity = _light.shapeLightFalloffSize;
         }
     }
 
@@ -67,36 +67,30 @@ public class PulseLight2D : MonoBehaviour
 
     private void Update()
     {
-        //if(useAnimator)
-            //frequency = _animator.GetCurrentAnimatorStateInfo(0).speed;
-
         bool canStep = !useDiscreteSteps || ( useDiscreteSteps &&  discreteTimer <= 0 );
 
         if(canStep)
         {
-            /*foreach(LightIntensityPair light in lights)
-                light.component.intensity = GetIntensityChange(light.component.intensity, light.initialIntensity);*/
-
             foreach(LightIntensityPair light in lights)
             {
                 if(useDiscreteSteps)
                 {
-                    bool isMovingForward = light.component.intensity == range.x;
+                    bool isMovingForward = light.Component.intensity == range.x;
 
-                    light.component.intensity = isMovingForward ? range.y : range.x;
-                    m_FalloffField.SetValue(light.component, light.component.shapeLightFalloffSize + ( isMovingForward ? 1 : -1 ) * ( range.y - range.x ));
+                    light.Component.intensity = isMovingForward ? range.y : range.x;
+                    m_FalloffField.SetValue(light.Component, light.Component.shapeLightFalloffSize + ( isMovingForward ? 1 : -1 ) * ( range.y - range.x ));
                 }
                 else
                 {
                     float lerpValue = Mathf.PingPong(Time.time, 1);
 
-                    light.component.intensity = Mathf.Lerp(range.x, range.y, lerpValue);//Mathf.Lerp(range.x, range.y, Mathf.PingPong(Time.time, 1));// * Speed;
+                    light.Component.intensity = Mathf.Lerp(range.x, range.y, lerpValue);//Mathf.Lerp(range.x, range.y, Mathf.PingPong(Time.time, 1));// * Speed;
 
                     float falloffRange = range.y - range.x;
-                    float falloffValue = Mathf.Lerp(light.falloffIntensity, light.falloffIntensity + falloffRange, 
+                    float falloffValue = Mathf.Lerp(light.FalloffIntensity, light.FalloffIntensity + falloffRange, 
                         lerpValue);
 
-                    m_FalloffField.SetValue(light.component, falloffValue);
+                    m_FalloffField.SetValue(light.Component, falloffValue);
                 }
             }
 
