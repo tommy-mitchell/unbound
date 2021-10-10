@@ -6,6 +6,6 @@ public class StopMusic : MonoBehaviour
 {
     void Start()
     {
-        GameObject.Find("Music").SetActive(false);
+        GameObject.Find("Music")?.SetActive(false);
     }
 }
