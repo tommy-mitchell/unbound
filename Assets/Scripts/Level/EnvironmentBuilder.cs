@@ -4,12 +4,13 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using Sirenix.OdinInspector;
-using Sirenix.Serialization;
 using LevelBuilder;
 
 [ExecuteInEditMode]
-public class EnvironmentBuilder : SerializedMonoBehaviour
+public class EnvironmentBuilder : MonoBehaviour
 {
+    private string UnityPath => "G:/Unity/ld49/unbound/";
+
     [SerializeField]
     private UnityEditor.DefaultAsset _asepriteFile;
     private string asePath;
@@ -21,20 +22,15 @@ public class EnvironmentBuilder : SerializedMonoBehaviour
 
     private FileSystemWatcher watcher;
 
-    private string UnityPath => "G:/Unity/ld49/unbound/";
-
+    [ShowInInspector, ReadOnly]
     private bool buildIsReady = false;
 
     [SerializeField, Tooltip("Disable to only update textures.")]
     private bool RebuildOnSave = true;
 
-    [OdinSerialize]
-    private Dictionary<string, Layer> layers;
+    [SerializeField]
+    private Level level;
 
-    [SerializeField, HideInInspector]
-    private Animator _anim;
-
-    [Button] // too lazy to auto create in editor -> button
     private void SetUpFileWatcher()
     {
         // make sure only one watcher is running at a time
@@ -85,15 +81,17 @@ public class EnvironmentBuilder : SerializedMonoBehaviour
         buildIsReady = true;
     }
 
-    private void OnValidate()
+    private void OnEnable()
     {
         if(watcher == null)
             SetUpFileWatcher();
-
-        _anim ??= GetComponent<Animator>();
     }
 
-    private void OnDisable() => watcher?.Dispose();
+    private void OnDisable()
+    {
+        watcher?.Dispose();
+        Debug.Log($"stopped watching {aseName}");
+    }
 
     private void Update()
     {
@@ -101,8 +99,18 @@ public class EnvironmentBuilder : SerializedMonoBehaviour
         {
             Debug.Log("building");
 
+            // reset level if rebuilding
+            level = ScriptableObject.CreateInstance<Level>();
+
             SortLayers();
             BuildLevel();
+
+            // save level to folder
+            string folder = asePath.Substring(asePath.IndexOf("Assets"));
+
+            AssetDatabase.CreateAsset(level, $"{folder}/level.asset");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             Debug.Log("built");
 
@@ -137,12 +145,8 @@ public class EnvironmentBuilder : SerializedMonoBehaviour
         return distances;
     }
 
-    [Button]
     private void SortLayers()
     {
-        // gather layers into a dictionary
-        layers = new Dictionary<string, Layer>();
-
         string subPath = asePath.Substring(asePath.IndexOf("Assets"));
         // remove trailing '/'
         string folder = string.Join("/", subPath.Split('/'), 0, subPath.Split('/').Length - 1);
@@ -150,7 +154,7 @@ public class EnvironmentBuilder : SerializedMonoBehaviour
         // get dictionary of layer distances
         var distances = GetDistancesFromJSON(folder);
 
-        // add each texture in the folder to the dictionary
+        // add each texture in the folder to the level
         foreach(var layer in AssetDatabase.FindAssets("t:texture2D", new[] { folder }))
         {
             string path = AssetDatabase.GUIDToAssetPath(layer);
@@ -159,67 +163,36 @@ public class EnvironmentBuilder : SerializedMonoBehaviour
 
             var frame = AssetDatabase.LoadMainAssetAtPath(path) as Texture2D;
 
-            if(layers.ContainsKey(name))
-                layers[name].AddFrame(frame);
-            else
-                layers.Add(name, new Layer(name, frame, distances[name]));
+            level.AddFrame(name, frame, distances[name]);
         }
-
-        // TODO: create animator
     }
 
-    [Button]
     private void BuildLevel()
     {
         // reset
         CommonLibrary.CommonMethods.DestroyAllChildren(this.transform);
-
-        // create animation clip
-        AnimationClip animClip = new AnimationClip();
-        animClip.frameRate = 1;
-        //_anim.GetCurrentAnimatorStateInfo(0).
-        // TODO: set in Animator
 
         // create game objects
         GameObject parallax = new GameObject("Parallax", typeof(ParallaxBuilder));
         GameObject   ground = new GameObject(  "Ground", typeof(Rigidbody2D), typeof(CompositeCollider2D), typeof(SplitGround));
 
         // set up each
-        SetUpParallax(parallax.GetComponent<ParallaxBuilder>(), animClip);
-        SetUpGround(ground.GetComponent<SplitGround>(), animClip);
+        //SetUpParallax(parallax.GetComponent<ParallaxBuilder>());
+        parallax.GetComponent<ParallaxBuilder>().BuildPrefabs(level);
+        SetUpGround(ground.GetComponent<SplitGround>());
 
         // set parent
         parallax.transform.SetParent(this.transform);
           ground.transform.SetParent(this.transform);
     }
 
-    private void SetUpParallax(ParallaxBuilder parallax, AnimationClip animClip)
-    {
-        // get layers to be parallaxed
-        var parallaxLayers = new List<Layer>();
-
-        foreach(var layer in layers)
-        {
-            // ignore non-parallaxed layers
-            if(layer.Key.Contains("Ground") || layer.Key.Contains("Collision"))
-                continue;
-
-            // add parallaxed layers
-            parallaxLayers.Add(layer.Value);
-        }
-
-        // build parallax layers
-        parallax.BuildPrefabs(parallaxLayers);
-    }
-
-    private void SetUpGround(SplitGround ground, AnimationClip animClip)
+    private void SetUpGround(SplitGround ground)
     {
         // set attributes
         ground.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
         ground.gameObject.layer = LayerMask.NameToLayer("Ground");
         
         // build ground and collision pieces
-        ground.Split(layers.Where(layer => layer.Key.Equals("Ground") || layer.Key.Equals("Collision"))
-            .ToDictionary(layer => layer.Key, layer => layer.Value), animClip);
+        ground.Split(level);
     }
 }

@@ -8,12 +8,12 @@ public class SplitGround : MonoBehaviour
     [Tooltip("Width of each split texture in pixels.")]
     public int pixelWidth = 16;
 
-    public void Split(Dictionary<string, Layer> layers, AnimationClip animClip)
+    public void Split(Level level)
     {
         CommonLibrary.CommonMethods.DestroyAllChildren(this.transform);
 
-        Texture2D _ground    = layers[   "Ground"].Frames[0];
-        Texture2D _collision = layers["Collision"].Frames[0];
+        Texture2D _ground    = level.Layers[   "Ground"].Frames[0];
+        Texture2D _collision = level.Layers["Collision"].Frames[0];
 
         int numberOfSlices = _ground.width / pixelWidth;
 
@@ -31,13 +31,25 @@ public class SplitGround : MonoBehaviour
             groundSprite.name = $"Ground {i}";
 
             // set new sliced sprite
-            slice.AddComponent<SpriteRenderer>().sprite = groundSprite;
-            slice.GetComponent<SpriteRenderer>().sortingLayerName = "Background";
-            slice.GetComponent<SpriteRenderer>().sortingOrder = 10;
+            SpriteRenderer _groundRenderer = slice.AddComponent<SpriteRenderer>();
+            _groundRenderer.sprite           = groundSprite;
+            _groundRenderer.sortingLayerName = "Background";
+            _groundRenderer.sortingOrder     = 10;
 
             // add animations, if available
-            if(layers["Ground"].Frames.Count > 1) // multiple frames
-                AddAnimations(animClip, layers["Ground"].ToSprites(textureRect));
+            if(level.Layers["Ground"].Frames.Count > 1) // multiple frames
+            {
+                AnimatedSprite groundAnimation = new AnimatedSprite(_groundRenderer);
+
+                //int count = 0;
+                //sprite.name = $"Ground {i}_{count}";
+                //count++;
+
+                foreach(var texture in level.Layers["Ground"].Frames)
+                    groundAnimation.Add(texture, textureRect);
+
+                level.AddAnimation(groundAnimation);
+            }
 
             // create collision GameObject
             GameObject collision = new GameObject();
@@ -53,7 +65,8 @@ public class SplitGround : MonoBehaviour
             collision.AddComponent<PolygonCollider2D>().usedByComposite = true;
             collision.AddComponent<PixelPerfectCollider2D>().Regenerate();
             
-            collision.transform.position -= new Vector3(i, 0, 0); // TEMP
+            // move collider over to align with ground
+            collision.transform.position -= new Vector3(i, 0, 0);
 
             // set parent objects
             collision.transform.SetParent(slice.transform);
@@ -61,37 +74,5 @@ public class SplitGround : MonoBehaviour
 
             slice.transform.position = new Vector2(i - numberOfSlices / 2, 0);
         }
-
-        // TODO: temp saving
-        AssetDatabase.CreateAsset(animClip, "Assets/Animation/Level/temp.anim");
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-    }
-
-    private void AddAnimations(AnimationClip animClip, List<Sprite> sprites)
-    {
-        // http://answers.unity.com/answers/1084464/view.html
-
-        // set up sprite binding
-        var spriteBinding = new EditorCurveBinding {
-            type = typeof(SpriteRenderer),
-            path = "",
-            propertyName = "m_Sprite"
-        };
-
-        // assign key frames
-        var spriteKeyFrames = new ObjectReferenceKeyframe[sprites.Count];
-
-        for(int index = 0; index < sprites.Count; index++)
-        {
-            //AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetDatabase.GetAssetPath(sprites[index]));
-            Debug.Log(sprites[index].GetInstanceID());
-            spriteKeyFrames[index] = new ObjectReferenceKeyframe();
-            spriteKeyFrames[index].time = index;
-            spriteKeyFrames[index].value = sprites[index];
-        }
-
-        // assign to animation clip
-        AnimationUtility.SetObjectReferenceCurve(animClip, spriteBinding, spriteKeyFrames);
     }
 }
